@@ -1,0 +1,37 @@
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical # Import the category conversion tool from the keras.utils toolbox
+from keras import models # Import Keras model, and various neural network layers
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from sklearn.metrics import confusion_matrix  
+import pandas as pd
+import numpy as np
+#Read in the training set and test set
+(X_train_image, y_train_lable), (X_test_image, y_test_lable) =  mnist.load_data()
+x_train4d = X_train_image.reshape(60000,28,28,1).astype('float32')/255 # Add a dimension to the tag
+x_test4d = X_test_image.reshape(10000,28,28,1).astype('float32')/255 # 
+y_train_onehot = to_categorical(y_train_lable, 10) # The feature is converted to one-hot encoding
+y_test_onehot = to_categorical(y_test_lable, 10) # 
+y_train_onehot.shape,y_test_onehot.shape
+model = models.Sequential() # Model in a sequential manner
+model.add(Conv2D(32, (3, 3), activation='relu', # Add the Conv2D layer
+                 padding='same',input_shape=(28,28,1))) # Specifies the type of the input data sample tensor
+model.add(MaxPooling2D(pool_size=(2, 2))) # Add the MaxPooling2D layer
+model.add(Conv2D(64, (3, 3), activation='relu'))#model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2))) 
+model.add(Dropout(0.25)) 
+model.add(Flatten()) # flattening
+model.add(Dense(128, activation='relu')) # Add the full connection layer
+model.add(Dropout(0.5)) # Add Dropout layer
+model.add(Dense(10, activation='softmax')) # Softmax classification activation, output 10 - d classification code
+# Compilation model
+model.compile(optimizer='rmsprop', # Designated optimizer
+              loss='categorical_crossentropy', # Specified loss function
+              metrics=['accuracy']) # Specify the evaluation metrics in the validation process
+clf = model.fit(x_train4d, y_train_onehot, # Specify the training feature set and the training label set
+          validation_split = 0.3, # Part of the training set data is divided into validation sets
+          epochs=10, # The training rounds are 5 rounds
+          batch_size=128) # Train in batches of 128
+score=model.evaluate(x_test4d,y_test_onehot) # Model evaluation on the test set
+print('Test set prediction accuracy:', score[1]) # Print the prediction accuracy on the test set
+prediction=np.argmax(model.predict(x_test4d),axis=-1)
+pd.crosstab(y_test_lable,prediction,rownames=['label'],colnames=['predict'])
