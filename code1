@@ -1,0 +1,42 @@
+#Import the required modules
+import time
+import numpy as np
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from keras.datasets import mnist
+from sklearn import svm
+#Import the dataset MNIST module provided by Keras
+(x_train_image,y_train_label), (x_test_image,y_test_label) = mnist.load_data()
+#Expand the image from 28*28 to 32*32
+x_train=np.pad(x_train_image,((0,0),(2,2),(2,2)),'constant',constant_values=0)
+#The data type must be changed
+x_train=x_train.astype('float32')
+#Data regularization
+x_train/=255
+#Data dimension conversion
+x_Train_normalize=x_train.reshape(x_train.shape[0],1024)
+print(x_Train_normalize.shape)
+
+#Expanded the test set from 28*28 to 32*32
+x_test=np.pad(x_test_image,((0,0),(2,2),(2,2)),'constant',constant_values=0)
+x_test=x_test.astype('float32')
+x_test/=255
+x_Test_normalize=x_test.reshape(x_test.shape[0],1024)
+print(x_Test_normalize.shape)
+#Pass the parameters of the training model
+print(time.strftime('%Y-%m-%d %H:%M:%S'))
+clf = svm.SVC(C=100.0, kernel='rbf', gamma=0.03,decision_function_shape='ovr')
+# Conduct model training
+t1 = time.time()
+clf.fit(x_Train_normalize, y_train_label)
+t2 = time.time()
+SVMfit = float(t2-t1)
+print("Time taken: {} seconds".format(SVMfit))
+predictions = [int(a) for a in clf.predict(x_Test_normalize)]
+#Confusion matrix
+print(confusion_matrix(y_test_label, predictions))
+#f1-score,precision,recall
+print(classification_report(y_test_label, np.array(predictions)))
+
+#Accuracy of calculation
+print('accuracy=', accuracy_score(y_test_label, predictions))
+print(time.strftime('%Y-%m-%d %H:%M:%S'))
